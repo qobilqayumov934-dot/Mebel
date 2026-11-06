@@ -42,3 +42,15 @@
   .viewer .stage3d{height:62vh;min-height:340px}
   .s3d-hint{display:none}
 }
+@media(max-width:640px){
+  .stage3d{border-radius:8px}
+  .pdp-3d .stage3d{aspect-ratio:1/1}
+  .s3d-bar{top:6px;left:6px;right:6px;gap:5px}
+  .s3d-bar button{padding:4px 9px;font-size:.74rem}
+  .s3d-dim{left:8px;bottom:8px;font-size:.73rem;padding:3px 9px}
+  .viewer .stage3d{height:56vh;min-height:300px}
+  .vlist{max-height:240px}
+}
+@media(max-width:380px){
+  .s3d-bar button{padding:4px 7px;font-size:.7rem}
+}

@@ -11,40 +11,74 @@ import Support from './pages/Support.jsx'
 import SignIn from './pages/SignIn.jsx'
 import Viewer from './pages/Viewer.jsx'
 
+function LangSwitcher({ className = '' }) {
+  const { t, lang, setLang } = useI18n()
+  return (
+    <div className={`lang ${className}`} role="group" aria-label={t('nav.language')}>
+      {LANGS.map((l) => (
+        <button
+          type="button"
+          key={l.code}
+          className={l.code === lang ? 'on' : ''}
+          onClick={() => setLang(l.code)}
+          aria-pressed={l.code === lang}
+          title={l.label}
+        >
+          {l.short}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function Header() {
   const { user, setUser, cart } = useStore()
-  const { t, lang, setLang } = useI18n()
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const nav = useNavigate()
   const count = cart.reduce((s, i) => s + i.qty, 0)
-  const close = () => setOpen(false)
+  const close = () => { setOpen(false); setNavOpen(false) }
+
+  // Закрываем меню при навигации кнопками браузера и по Escape
+  useEffect(() => {
+    const closeMenus = () => { setOpen(false); setNavOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') closeMenus() }
+    window.addEventListener('popstate', closeMenus)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('popstate', closeMenus)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [])
 
   return (
     <header className="hdr">
       <Link to="/" className="logo" onClick={close}>{t('brand')}</Link>
-      <nav aria-label={t('nav.main')}>
+      <nav id="main-nav" className={navOpen ? 'open' : ''} aria-label={t('nav.main')}>
         <NavLink to="/" end onClick={close}>{t('nav.home')}</NavLink>
         <NavLink to="/viewer" onClick={close}>{t('nav.viewer')}</NavLink>
         <NavLink to="/custom" onClick={close}>{t('nav.custom')}</NavLink>
         <NavLink to="/about" onClick={close}>{t('nav.about')}</NavLink>
         <NavLink to="/support" onClick={close}>{t('nav.support')}</NavLink>
+        <LangSwitcher className="nav-lang" />
       </nav>
       <div className="hr">
-        <div className="lang" role="group" aria-label={t('nav.language')}>
-          {LANGS.map((l) => (
-            <button
-              type="button"
-              key={l.code}
-              className={l.code === lang ? 'on' : ''}
-              onClick={() => setLang(l.code)}
-              aria-pressed={l.code === lang}
-              title={l.label}
-            >
-              {l.short}
-            </button>
-          ))}
-        </div>
-        <Link to="/cart" className="cartb" onClick={close}>{t('nav.cart')}{count > 0 && <b>{count}</b>}</Link>
+        <LangSwitcher className="hdr-lang" />
+        <Link
+          to="/cart"
+          className="cartb"
+          onClick={close}
+          aria-label={count > 0 ? `${t('nav.cart')}: ${count}` : t('nav.cart')}
+        >
+          <svg className="cart-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2.5 3h2.2l2.3 12h11.2l2.3-8H6.1" />
+            <circle cx="9" cy="20" r="1.4" />
+            <circle cx="18" cy="20" r="1.4" />
+          </svg>
+          <span className="cart-label">{t('nav.cart')}</span>
+          {count > 0 && <b>{count}</b>}
+        </Link>
         {user ? (
           <div className="acc">
             <button className="av" onClick={() => setOpen(!open)} aria-label={t('nav.account')}>{user.name[0].toUpperCase()}</button>
@@ -59,6 +93,16 @@ function Header() {
         ) : (
           <Link className="btn sm" to="/signin" onClick={close}>{t('nav.signin')}</Link>
         )}
+        <button
+          type="button"
+          className={`burger${navOpen ? ' open' : ''}`}
+          aria-label={t('nav.main')}
+          aria-expanded={navOpen}
+          aria-controls="main-nav"
+          onClick={() => setNavOpen((v) => !v)}
+        >
+          <span /><span /><span />
+        </button>
       </div>
     </header>
   )
